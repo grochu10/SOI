@@ -18,9 +18,9 @@
 #include <string.h>
 #include <uistd.h>
 
-#include "data.h"
-#include "queue.h"
-#include "message.h"
+#include ".../inc/data.h"
+#include ".../inc/queue.h"
+#include ".../inc/message.h"
 
 //ustawienie wartosci pol struktury wiadomosc
 void set_msg(struct Message *m, int pri, int src, char* msg)
