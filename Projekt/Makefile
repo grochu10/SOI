@@ -52,4 +52,4 @@ $(object4): $s/$(object4).c
 
 object5 = main
 $(object5): $s/$(object5).c
-$(CC) $s/$(object5).c -c -o $o/$(object5).o
+	$(CC) $s/$(object5).c -c -o $o/$(object5).o
