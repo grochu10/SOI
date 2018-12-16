@@ -16,10 +16,10 @@
 
 #include <string.h>
 #include <unistd.h>
-#include ".../inc/data.h"
-#include ".../inc/message.h"
-#include ".../inc/queue.h"
-#include ".../inc/users.h"
+#include "../inc/data.h"
+#include "../inc/message.h"
+#include "../inc/queue.h"
+#include "../inc/users.h"
 
 
 int main(int argc, char * argv[])
