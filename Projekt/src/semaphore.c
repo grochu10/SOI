@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "semaphore.h"
+#include "../inc/semaphore.h"
 
 #include <string.h>
 
