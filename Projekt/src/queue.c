@@ -17,9 +17,9 @@
 #include <uistd.h>
 
 #include <string.h>
-#include ".../inc/data.h"
-#include ".../inc/message.h"
-#include ".../inc/queue.h"
+#include "../inc/data.h"
+#include "../inc/message.h"
+#include "../inc/queue.h"
 
 
 
