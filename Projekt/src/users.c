@@ -18,9 +18,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include ".../inc/data.h"
-#include ".../inc/message.h"
-#include ".../inc/queue.h"
+#include "../inc/data.h"
+#include "../inc/message.h"
+#include "../inc/queue.h"
 
 
 //losowanie litery do wiadomosci
