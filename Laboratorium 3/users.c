@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 
 #include <string.h>
+#include <uistd.h>
 
 #include "data.h"
 #include "message.h"
@@ -115,7 +116,7 @@ void producer(int queue_id)
 
 		up(mutexId, 0);
 		up(fullId, 0);	
-				
+		usleep(PRODUCER_DELAY);		
 	}	
 }
 
@@ -181,7 +182,8 @@ void super_producer(void)
                 up(mutexId_C, 0);
 		        up(fullId_C, 0);
                 break;
-        }		
+        }
+        usleep(PRODUCER_DELAY);		
 	}	
 }
 
@@ -245,6 +247,7 @@ void consumer(int queue_id, float pr)
 		sem_down(fullId, 0);
 		sem_down(mutexId, 0);
         msg = read_msg(queue);
+        usleep(CONSUMER_DELAY);	
         if(msg.m[0]!='0'){
              switch(queue_id){
             case 1:

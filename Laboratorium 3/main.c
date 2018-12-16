@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 
 #include <string.h>
+#include <uistd.h>
 #include "data.h"
 #include "message.h"
 #include "queue.h"
@@ -24,8 +25,8 @@
 
 int main(int argc, char * argv[])
 {
+    int i;
 	char* args;
-	int tmp;
 	int q_key_A = QUEUE_A_KEY;
     int fullId_A = semget(FULL_A_KEY, 1, 0600);
     int emptyId_A = semget(EMPTY_A_KEY, 1, 0600);
@@ -52,47 +53,53 @@ int main(int argc, char * argv[])
 	}
 	//TODO
 	
-    args[0] = argv[0];
-    args[2] = argv[1];
     #define WAIT_TIME 200
 
-    args[1] = "A";
-    new_child(consumer, 3, args);
+    if( fork()==0 )
+	{
+	super_producent();
+    printf("Utworzony zostal producent specjalny.\n"); 
     usleep(WAIT_TIME);
-    args[1] = "B";
-    new_child(consumer, 3, args);
-    usleep(WAIT_TIME);
-    args[1] = "C";
-    new_child(consumer, 3, args);
-    usleep(WAIT_TIME);
+    for(i=1;i<4;i++)
+    {
+        if( fork()==0 )
+	    {
+            producent(i);
+            switch(i){
+                case 1:
+                    printf("Utworzony zostal producent A.\n"); 
+                break;
+                case 2:
+                    printf("Utworzony zostal producent B.\n"); 
+                    break;
+                case 3:
+                    printf("Utworzony zostal producent C.\n"); 
+                    break;
+            }
+        usleep(WAIT_TIME);
+	    }
+        usleep(WAIT_TIME);
+        if( fork()==0 )
+	    {
+            consumer(i,pr);
+            switch(i){
+                case 1:
+                    printf("Utworzony zostal konsument A.\n"); 
+                break;
+                case 2:
+                    printf("Utworzony zostal konsument B.\n"); 
+                    break;
+                case 3:
+                    printf("Utworzony zostal konsument C.\n"); 
+                    break;
+            }
+            usleep(WAIT_TIME);
+	    }
+        usleep(WAIT_TIME);
 
-    args[1] = "A";
-    new_child(producer, 2, args);
-    usleep(WAIT_TIME);
-    args[1] = "B";
-    new_child(producer, 2, args);
-    usleep(WAIT_TIME);
-    args[1] = "C";
-    new_child(producer, 2, args);
-    usleep(WAIT_TIME);
+    }
 
-    new_child(super_producer, 1, args);
-
-	while(wait(&tmp) != -1);	
-	
-	shmdt(queue_A);
-	shmdt(queue_B);
-	shmdt(queue_C);
+	while(wait(&i) != -1);	    
 
 	return 0;
-}
-
-void new_child(int (*child)(int, char**), int argc, char * argv[])
-{
-	if( fork()==0 )
-	{
-        // only child will enter here
-		exit(child(argc, argv));
-	}
-	/* only parrent will return from function */
 }
