@@ -24,6 +24,7 @@
 
 int main(int argc, char * argv[])
 {
+    float pr =1;
     int i;
 	char* args;
 	int q_key_A = QUEUE_A_KEY;
@@ -56,49 +57,50 @@ int main(int argc, char * argv[])
 
     if( fork()==0 )
 	{
-	super_producent();
-    printf("Utworzony zostal producent specjalny.\n"); 
-    usleep(WAIT_TIME);
-    for(i=1;i<4;i++)
-    {
-        if( fork()==0 )
-	    {
-            producent(i);
-            switch(i){
-                case 1:
-                    printf("Utworzony zostal producent A.\n"); 
-                break;
-                case 2:
-                    printf("Utworzony zostal producent B.\n"); 
-                    break;
-                case 3:
-                    printf("Utworzony zostal producent C.\n"); 
-                    break;
-            }
+        super_producent();
+        printf("Utworzony zostal producent specjalny.\n"); 
         usleep(WAIT_TIME);
-	    }
-        usleep(WAIT_TIME);
-        if( fork()==0 )
-	    {
-            consumer(i,pr);
-            switch(i){
-                case 1:
-                    printf("Utworzony zostal konsument A.\n"); 
-                break;
-                case 2:
-                    printf("Utworzony zostal konsument B.\n"); 
+        for(i=1;i<4;i++)
+        {
+            if( fork()==0 )
+            {
+                producent(i);
+                switch(i){
+                    case 1:
+                        printf("Utworzony zostal producent A.\n"); 
                     break;
-                case 3:
-                    printf("Utworzony zostal konsument C.\n"); 
-                    break;
+                    case 2:
+                        printf("Utworzony zostal producent B.\n"); 
+                        break;
+                    case 3:
+                        printf("Utworzony zostal producent C.\n"); 
+                        break;
+                }
+            usleep(WAIT_TIME);
             }
             usleep(WAIT_TIME);
-	    }
-        usleep(WAIT_TIME);
+            if( fork()==0 )
+            {
+                consumer(i,pr);
+                switch(i){
+                    case 1:
+                        printf("Utworzony zostal konsument A.\n"); 
+                    break;
+                    case 2:
+                        printf("Utworzony zostal konsument B.\n"); 
+                        break;
+                    case 3:
+                        printf("Utworzony zostal konsument C.\n"); 
+                        break;
+                }
+                usleep(WAIT_TIME);
+            }
+            usleep(WAIT_TIME);
 
+        }
+
+        while(wait(&i) != -1);	    
+
+        return 0;
     }
-
-	while(wait(&i) != -1);	    
-
-	return 0;
 }
