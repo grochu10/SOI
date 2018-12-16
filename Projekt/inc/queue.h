@@ -16,4 +16,10 @@ void queue_init(struct Queue *q);
 
 int get_queue_size(struct Queue *q);
 
+//wyslanie wiadomosci do kolejki
+void send_msg(struct Queue *q, struct Message m);
+
+//odczytanie wiadomosci z kolejki
+struct Message read_msg(struct Queue *q);
+
 #endif

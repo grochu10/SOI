@@ -15,10 +15,5 @@ struct Message
 //ustawienie wartosci pol struktury wiadomosc
 void set_msg(struct Message *m, int pri, int src, char* msg);
 
-//wyslanie wiadomosci do kolejki
-void send_msg(struct Queue *q, struct Message m);
-
-//odczytanie wiadomosci z kolejki
-struct Message read_msg(struct Queue *q);
 
 #endif

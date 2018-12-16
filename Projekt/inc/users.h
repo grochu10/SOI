@@ -2,13 +2,13 @@
 #define USERS_H
 
 //inicjalizacja procesu producent dla danej kolejki
-void producer(int queue_id);
+int producer(int queue_id);
 
 //inicjalizacja procesu super producent
-void super_producer(void);
+int super_producer(void);
 
 //inicjalizacja procesu konsumenta dla danej kolejki
-void consumer(int queue_id,float pr);
+int consumer(int queue_id,float pr);
 
 //losowanie litery do wiadomosci
 char random_lit(void);

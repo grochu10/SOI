@@ -5,7 +5,7 @@
 ###################################################################
 
 # nazwa projektu
-project_name = project2
+project_name = semaforki
 
 # komenda kompilacji
 CC = gcc
@@ -23,10 +23,7 @@ o = obj
 
 # kompilacja wszystkich zaleznosci do pliku wykonywalnego
 all: main message queue semaphore users
-	$(CC) $o/main.o $o/message.o $o/queue.o $o/semaphore.o $o/users.o -o $b/project2.bin
-	#$(CC) $o/producer.o $o/tools.o -o $b/producer.bin
-	#$(CC) $o/prosumer.o $o/tools.o -o $b/prosumer.bin
-	#$(CC) $o/special.o  $o/tools.o -o $b/special.bin
+	$(CC) $o/main.o $o/message.o $o/queue.o $o/semaphore.o $o/users.o -o $b/semaforki.bin
 
 # wyczyszczenie projektu
 clean: 

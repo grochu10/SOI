@@ -21,12 +21,13 @@
 #include "../inc/data.h"
 #include "../inc/message.h"
 #include "../inc/queue.h"
+#include "../inc/semaphore.h"
 
 
 //losowanie litery do wiadomosci
 char random_lit(void)
 {
-    char tab[MESS_SIZE] = {"a","b","c"};
+    char tab[MESS_SIZE] = {"a" "b" "c"};
     int i;
     int list[10];
     int d;
@@ -56,7 +57,7 @@ int random_queue(void)
 
 
 //inicjalizacja procesu producent dla danej kolejki
-void producer(int queue_id)
+int producer(int queue_id)
 {
     int i;
     int q_id;
@@ -98,6 +99,7 @@ void producer(int queue_id)
 		set_msg(&msg,0,queue_id,message);
 		
 		sem_down(emptyId, 0);
+       
 		sem_down(mutexId, 0);
 
 		send_msg(queue, msg);
@@ -114,14 +116,15 @@ void producer(int queue_id)
                 break;
         }
 
-		up(mutexId, 0);
-		up(fullId, 0);	
+		sem_up(mutexId, 0);
+		sem_up(fullId, 0);	
 		usleep(PRODUCER_DELAY);		
-	}	
+	}
+    return 0;		
 }
 
 //inicjalizacja procesu super producent dla danej kolejki
-void super_producer(void)
+int super_producer(void)
 {
     int i;
     int queue_id;
@@ -153,7 +156,7 @@ void super_producer(void)
         }
 		set_msg(&msg,0,queue_id,message);
         queue_id = random_queue();
-
+         
         switch(queue_id){
             case 1:
                 set_msg(&msg,1,queue_id,message);
@@ -161,8 +164,8 @@ void super_producer(void)
                 sem_down(mutexId_A, 0);
                 send_msg(queue_A, msg);
                 printf("Super producent wyslal wiadomosc do kolejki A.\n");
-                up(mutexId_A, 0);
-		        up(fullId_A, 0);	 
+                sem_up(mutexId_A, 0);
+		        sem_up(fullId_A, 0);	 
                 break;
             case 2:
                 set_msg(&msg,1,queue_id,message);
@@ -170,8 +173,8 @@ void super_producer(void)
                 sem_down(mutexId_B, 0);
                 send_msg(queue_B, msg);
                 printf("Super producent wyslal wiadomosc do kolejki B.\n");
-                up(mutexId_B, 0);
-		        up(fullId_B, 0);
+                sem_up(mutexId_B, 0);
+		        sem_up(fullId_B, 0);
                 break;
             case 3:
                 set_msg(&msg,1,queue_id,message);
@@ -179,16 +182,17 @@ void super_producer(void)
                 sem_down(mutexId_C, 0);
                 send_msg(queue_C, msg);
                 printf("Super producent wyslal wiadomosc do kolejki C.\n"); 
-                up(mutexId_C, 0);
-		        up(fullId_C, 0);
+                sem_up(mutexId_C, 0);
+		        sem_up(fullId_C, 0);
                 break;
         }
         usleep(PRODUCER_DELAY);		
-	}	
+	}
+    return 0;	
 }
 
 //inicjalizacja procesu konsument dla danej kolejki
-void consumer(int queue_id, float pr)
+int consumer(int queue_id, float pr)
 {
     float l;
     int i;
@@ -290,8 +294,8 @@ void consumer(int queue_id, float pr)
                         printf("Konsument C przeslal wiadomosc do kolejki A.\n"); 
                         break;
                 }
-                up(mutexId_A, 0);
-		        up(fullId_A, 0);
+                sem_up(mutexId_A, 0);
+		        sem_up(fullId_A, 0);
                 break;
             case 'b':
                 sem_down(emptyId_B, 0);
@@ -308,8 +312,8 @@ void consumer(int queue_id, float pr)
                         printf("Konsument C przeslal wiadomosc do kolejki B.\n"); 
                         break;
                 }
-                up(mutexId_B, 0);
-		        up(fullId_B, 0);
+                sem_up(mutexId_B, 0);
+		        sem_up(fullId_B, 0);
                 break;
             case 'c':
                 sem_down(emptyId_C, 0);
@@ -326,13 +330,14 @@ void consumer(int queue_id, float pr)
                         printf("Konsument C przeslal wiadomosc do kolejki C.\n"); 
                         break;
                 }
-                up(mutexId_C, 0);
-		        up(fullId_C, 0);
+                sem_up(mutexId_C, 0);
+		        sem_up(fullId_C, 0);
                 break;
             }
         }
-		up(mutexId, 0);
-		up(emptyId, 0);	
+		sem_up(mutexId, 0);
+		sem_up(emptyId, 0);	
 				
-	}	
+	}
+    return 0;		
 }
