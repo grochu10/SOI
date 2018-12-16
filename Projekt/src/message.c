@@ -34,7 +34,7 @@ void send_msg(struct Queue *q, struct Message m)
 {
     int i;
     int n;
-    struct Message *tmp;
+    struct Message tmp;
     if(q->size == 0){//gdy tablica pusta
         q->table[0] = m;
         q->head = 0;
@@ -52,11 +52,11 @@ void send_msg(struct Queue *q, struct Message m)
                         while(q->table[tmp->next].pri == 0 || tmp == q->table[q->tail])
                             tmp = q->table[tmp->next];
                         if(tmp == q->table[q->tail]){//gdy wszystkie procesy w kolejce maja wysoki priorytet
-                            tmp->next = q->table[i];
+                            tmp.next = q->table[i];
                             q->tail = i;
                         }else{//gdy znaleziono granice miedzy procesami o roznych priorytetach
                             q->table[i].next = tmp -> next;
-                            tmp->next = q->table[i];
+                            tmp.next = q->table[i];
                         }
                     }else{//gdy w tablicy tylko elementy o normalnym priorytecie
                         q->table[i].next = q->head;
