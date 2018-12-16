@@ -16,7 +16,6 @@
 #include <sys/wait.h>
 
 #include <string.h>
-#include <uistd.h>
 
 #include "../inc/data.h"
 #include "../inc/queue.h"
