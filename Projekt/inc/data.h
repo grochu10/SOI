@@ -19,7 +19,7 @@
 #define MUTEX_C_KEY 9988
 
 //DELAYS
-#define PRODUCER_DELAY 30000000 //3s
+#define PRODUCER_DELAY 3 //3s
 #define CONSUMER_DELAY 500000 //0,5s 
 
 #endif

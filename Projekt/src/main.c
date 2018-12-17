@@ -24,7 +24,7 @@
 
 int main(int argc, char * argv[])
 {
-    float pr =1;
+    float pr =0;
     int i;
 	char* args;
 	int q_key_A = QUEUE_A_KEY;

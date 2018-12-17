@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -33,24 +34,24 @@ char random_lit(void)
     int d;
     for(i=0;i<10;++i)
     {
-        list[i] = rand() % 2;
+        list[i] = rand() % 3;
     }
-    d = rand() % 9;
+    d = rand() % 10;
     return tab[list[d]];
 }
 
 //losowanie kolejki do wyslanai wiadomosci przez super producenta
 int random_queue(void)
 {
-    int tab[3] = {0,1,2};
+    int tab[3] = {1,2,3};
     int i;
     int list[10];
     int d;
     for(i=0;i<10;++i)
     {
-        list[i] = rand() % 2;
+        list[i] = rand() % 3;
     }
-    d = rand() % 9;
+    d = rand() % 10;
     return tab[list[d]];
 
 }
@@ -97,11 +98,9 @@ int producer(int queue_id)
             message[i] = random_lit();
         }
 		set_msg(&msg,0,queue_id,message);
-		
 		sem_down(emptyId, 0);
-       
 		sem_down(mutexId, 0);
-
+        printf("go\n");
 		send_msg(queue, msg);
 
         switch(queue_id){
@@ -115,10 +114,9 @@ int producer(int queue_id)
                 printf("Producent C wyslal wiadomosc.\n");
                 break;
         }
-
 		sem_up(mutexId, 0);
 		sem_up(fullId, 0);	
-		usleep(PRODUCER_DELAY);		
+		sleep(PRODUCER_DELAY);		
 	}
     return 0;		
 }
@@ -186,7 +184,7 @@ int super_producer(void)
 		        sem_up(fullId_C, 0);
                 break;
         }
-        usleep(PRODUCER_DELAY);		
+        sleep(PRODUCER_DELAY);		
 	}
     return 0;	
 }
@@ -252,6 +250,7 @@ int consumer(int queue_id, float pr)
 		sem_down(mutexId, 0);
         msg = read_msg(queue);
         usleep(CONSUMER_DELAY);	
+        printf("jeee\n");
         if(msg.m[0]!='0'){
              switch(queue_id){
             case 1:
