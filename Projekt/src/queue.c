@@ -88,7 +88,7 @@ struct Message read_msg(struct Queue *q)
 	m = q->table[q->head];
     if(q->head != q->tail)//gdy w tablicej jest wiecej niz 1 element
         q->head = q->table[q->head].next;
-	q->size--;
-	return m;
+q->size--;
+return m;
 }
 

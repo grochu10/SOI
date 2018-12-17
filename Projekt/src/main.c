@@ -81,7 +81,7 @@ int main(int argc, char * argv[])
                 break;
         }
         usleep(WAIT_TIME);
-        if( fork()==0 )
+        /*if( fork()==0 )
         {
             
             exit(consumer(i,pr));
@@ -97,14 +97,14 @@ int main(int argc, char * argv[])
                 printf("Utworzony zostal konsument C.\n"); 
                 break;
         }
-        usleep(WAIT_TIME);
-    }      
+        usleep(WAIT_TIME);*/
+    }    
     int count;
     count = 0;
     while( count <= (5*60*1000/250))
     {
-        printf("%c: %d | %c: %d |%c: %d |", 'A', queue_A->size,'B',queue_B->size,'C',queue_C->size);
-        printf("time: %.2fs\n", (float)(count*250.0/1000));
+        printf("Stany kolejek:\n%c: %d || %c: %d ||%c: %d ||", 'A', queue_A->size,'B',queue_B->size,'C',queue_C->size);
+        printf("czas symulacji: %.2fs\n", (float)(count*250.0/1000));
         
         usleep(1000*250);
         count++;

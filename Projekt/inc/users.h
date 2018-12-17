@@ -11,9 +11,9 @@ int super_producer(void);
 int consumer(int queue_id,float pr);
 
 //losowanie litery do wiadomosci
-char random_lit(void);
+char random_lit(int queue_id);
 
 //losowanie kolejki do wyslanai wiadomosci przez super producenta
-int random_queue(void);
+int random_queue(int queue_id);
 
 #endif
