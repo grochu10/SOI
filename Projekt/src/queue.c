@@ -39,6 +39,7 @@ int get_queue_size(struct Queue *q)
 //wyslanie wiadomosci do kolejki
 void send_msg(struct Queue *q, struct Message m)
 {
+    
     int i;
     int n;
     int tmp;

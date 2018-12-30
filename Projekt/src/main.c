@@ -81,7 +81,7 @@ int main(int argc, char * argv[])
                 break;
         }
         usleep(WAIT_TIME);
-        /*if( fork()==0 )
+        if( fork()==0 )
         {
             
             exit(consumer(i,pr));
@@ -97,7 +97,7 @@ int main(int argc, char * argv[])
                 printf("Utworzony zostal konsument C.\n"); 
                 break;
         }
-        usleep(WAIT_TIME);*/
+        usleep(WAIT_TIME);
     }    
     int count;
     count = 0;
