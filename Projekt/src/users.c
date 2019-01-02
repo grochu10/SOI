@@ -93,15 +93,16 @@ int producer(int queue_id)
 	
 	while(1)//glowna petla producenta
 	{	
+        sleep(PRODUCER_DELAY);
         for(i=0;i<MESS_SIZE;++i)
         {
             message[i] = random_lit(queue_id);
         }
 		set_msg(&msg,0,queue_id,message);
 		sem_down(emptyId, 0);
+        sem_up(fullId, 0);
 		sem_down(mutexId, 0);
 		send_msg(queue, msg);
-
         switch(queue_id){
             case 1:
                 printf("Producent A wyslal wiadomosc.\n"); 
@@ -113,9 +114,7 @@ int producer(int queue_id)
                 printf("Producent C wyslal wiadomosc.\n");
                 break;
         }
-		sem_up(mutexId, 0);
-		sem_up(fullId, 0);	
-		sleep(PRODUCER_DELAY);		
+		sem_up(mutexId, 0);			
 	}
     return 0;		
 }
@@ -147,43 +146,43 @@ int super_producer(void)
     struct Queue *queue_C = (struct Queue*)shmat(q_id_C, NULL, 0);	// utworzenie wskaznika na kolejke C
 	while(1)//glowna petla producenta
 	{
+        sleep(PRODUCER_DELAY);
         for(i=0;i<MESS_SIZE;++i)
         {
             message[i] = random_lit(queue_id);
         }
 		set_msg(&msg,0,queue_id,message);
         queue_id = random_queue(queue_id);
-         
         switch(queue_id){
             case 1:
                 set_msg(&msg,1,queue_id,message);
                 sem_down(emptyId_A, 0);
+                sem_up(fullId_A, 0);
                 sem_down(mutexId_A, 0);
                 send_msg(queue_A, msg);
                 printf("Super producent wyslal wiadomosc do kolejki A.\n");
-                sem_up(mutexId_A, 0);
-		        sem_up(fullId_A, 0);	 
+                sem_up(mutexId_A, 0);	 
                 break;
             case 2:
                 set_msg(&msg,1,queue_id,message);
                 sem_down(emptyId_B, 0);
+                sem_up(fullId_B, 0);
                 sem_down(mutexId_B, 0);
                 send_msg(queue_B, msg);
                 printf("Super producent wyslal wiadomosc do kolejki B.\n");
                 sem_up(mutexId_B, 0);
-		        sem_up(fullId_B, 0);
                 break;
             case 3:
                 set_msg(&msg,1,queue_id,message);
                 sem_down(emptyId_C, 0);
+                sem_up(fullId_C, 0);
                 sem_down(mutexId_C, 0);
                 send_msg(queue_C, msg);
                 printf("Super producent wyslal wiadomosc do kolejki C.\n"); 
                 sem_up(mutexId_C, 0);
-		        sem_up(fullId_C, 0);
                 break;
         }
-        sleep(PRODUCER_DELAY);		
+        		
 	}
     return 0;	
 }
@@ -246,6 +245,7 @@ int consumer(int queue_id, float pr)
 	{	
 		usleep(CONSUMER_DELAY);
 		sem_down(fullId, 0);
+        sem_up(emptyId, 0);
 		sem_down(mutexId, 0);
         msg = read_msg(queue);	
         if(msg.m[0]!='0'){
@@ -281,8 +281,6 @@ int consumer(int queue_id, float pr)
         switch(a){
             case 1:
                 sem_down(emptyId_A, 0);
-                //if(queue_id!=1)sem_down(mutexId_A, 0);
-                
                 send_msg(queue_A, msg);
                 switch(queue_id){
                     case 1:
@@ -295,14 +293,10 @@ int consumer(int queue_id, float pr)
                         printf("Konsument C przeslal wiadomosc do kolejki A.\n"); 
                         break;
                 }
-                //if(queue_id!=1)sem_up(mutexId_A, 0);
 		        sem_up(fullId_A, 0);
                 break;
             case 2:
-                
 		        sem_down(emptyId_B, 0);
-                //if(queue_id!=2)sem_down(mutexId_B, 0);
-                
                 send_msg(queue_B, msg);
                 switch(queue_id){
                     case 1:
@@ -315,14 +309,10 @@ int consumer(int queue_id, float pr)
                         printf("Konsument C przeslal wiadomosc do kolejki B.\n"); 
                         break;
                 }
-		        //if(queue_id!=2) sem_up(mutexId_B, 0);
 		        sem_up(fullId_B, 0);
                 break;
             case 3:
-                
                 sem_down(emptyId_C, 0);
-                //if(queue_id!=3)sem_down(mutexId_C, 0);
-                
                 send_msg(queue_C, msg);
                 switch(queue_id){
                     case 1:
@@ -335,13 +325,11 @@ int consumer(int queue_id, float pr)
                         printf("Konsument C przeslal wiadomosc do kolejki C.\n"); 
                         break;
                 }
-                //if(queue_id!=3)sem_up(mutexId_C, 0);
 		        sem_up(fullId_C, 0);
                 break;
             }
         }
-	sem_up(mutexId, 0);
-	sem_up(emptyId, 0);		
+	sem_up(mutexId, 0);	
 	}
     return 0;		
 }
