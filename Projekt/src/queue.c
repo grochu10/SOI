@@ -57,7 +57,7 @@ void send_msg(struct Queue *q, struct Message m)
                     if(q->table[q->head].pri == 1){//gdy pierwszy proces ma wysoki priorytet
                         tmp = q->head;
                         //przechodzenie kolejki aby znalezc ostatni proces z wysokim priorytetem
-                        while(q->table[tmp].pri == 0 || tmp == q->tail)
+                        while(q->table[tmp].pri != 0 || tmp == q->tail)
                             tmp = q->table[tmp].next;
                         if(tmp == q->tail){//gdy wszystkie procesy w kolejce maja wysoki priorytet
                             q->table[tmp].next = q->table[i].next;
