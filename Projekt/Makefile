@@ -8,7 +8,7 @@
 project_name = semaforki
 
 # komenda kompilacji
-CC = gcc
+CC = gcc -pthread
 
 # katalog zawierajacy pliki *.c
 s = src
