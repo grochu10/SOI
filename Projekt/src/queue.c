@@ -85,8 +85,8 @@ void send_msg(struct Queue *q, struct Message m)
 struct Message read_msg(struct Queue *q)
 {	
 	struct Message m;
-
 	m = q->table[q->head];
+    q->table[q->head].free_place = 1;
     if(q->head != q->tail)//gdy w tablicej jest wiecej niz 1 element
         q->head = q->table[q->head].next;
 q->size--;
