@@ -244,11 +244,10 @@ int consumer(int queue_id, float pr)
 	
 	while(1)//glowna petla producenta
 	{	
-		
+		usleep(CONSUMER_DELAY);
 		sem_down(fullId, 0);
 		sem_down(mutexId, 0);
-        msg = read_msg(queue);
-        usleep(CONSUMER_DELAY);	
+        msg = read_msg(queue);	
         if(msg.m[0]!='0'){
             switch(queue_id){
 		    case 1:
@@ -341,10 +340,8 @@ int consumer(int queue_id, float pr)
                 break;
             }
         }
-
 	sem_up(mutexId, 0);
-	sem_up(emptyId, 0);	
-				
+	sem_up(emptyId, 0);		
 	}
     return 0;		
 }
