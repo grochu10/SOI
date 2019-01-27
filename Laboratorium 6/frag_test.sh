@@ -1,4 +1,4 @@
-echo "POCZATEK TESTU NR 1"
+echo "POCZATEK TESTU FRAGMENTACJI"
 echo "TWORZENIE SYSTEMU"
 ./a.out crt_fs fs 50000
 echo "INFORMACJE O SYSTEMIE"
@@ -22,7 +22,6 @@ echo "DODANIE DO SYSTEMU KILKU SREDNICH PLIKOW"
 for n in `seq 1 4`;
     do
         ./a.out cp_to fs sredni.txt mgo\ poczatek"$n".txt
-        echo ""
 done
 echo "STAN DYSKU PO DODANIU PLIKOW"
 ./a.out ls_fs fs
@@ -62,3 +61,4 @@ echo "INFORMACJE O SYSTEMIE"
 ./a.out info_fs fs
 echo "USUNIECIE SYSTEMU"
 ./a.out rm_fs fs
+echo "KONIEC TESTU FRAGMENTACJI"

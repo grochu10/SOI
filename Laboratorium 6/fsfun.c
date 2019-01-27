@@ -379,6 +379,13 @@ int fun_help(const char* fun)
         return 0;
     }
 
+    /*display_map*/
+    if(strcmp(fun,"disp_map") == 0){
+        printf("Skladnia: disp_map <nazwa_systemu_plikow>\n");
+        printf("Opis:\nFunkcja do wyswietlania mapy zajetosci systemu plikow o podanej nazwie.\n");
+        return 0;
+    }
+
     printf("ERROR. Brak takiej funkcji w systemie.\n");
     return 0;
 }
