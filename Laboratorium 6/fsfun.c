@@ -18,7 +18,7 @@ int create_fs(char* fs_name, int size)
     superBlock.fileDataStart += superBlock.metadataNumber*sizeof(fileMetaData_t);
     superBlock.fileDataSize = size - superBlock.fileDataStart;
     superBlock.metadataSize = 0;
-    printf("Tworzenie systemu plikow: %.20s\n", fs_name);
+    printf("Tworzenie systemu plikow: %.20s o pojemnosci %d.\n", fs_name,size);
     memset(p, 0, size);
     memcpy(p, &superBlock, sizeof(superBlock_t));
     fwrite(p, size, 1, file);
@@ -38,37 +38,45 @@ int ls_fs(char* fs_name)
     if(super.metadataSize == 0) printf("Brak plikow w systemie.\n");
     else{
         printf("Zawartosc systemu plikow:\n");
-        printf("Nazwa pliku\t Rozmiar\t Adres\n");
+        printf("Nazwa pliku\t\t\tRozmiar\t\tAdres\n");
     }
-    fileMetaData_t meta[super.fileDataStart];
-    fread(&meta,super.fileDataStart,1,file);
+    fileMetaData_t meta;
     for(i = super.metadataStart;i < super.fileDataStart;i += sizeof(fileMetaData_t))
     {
-        if(meta[i].used == 1){
-            printf("%s\t%d\t%d",meta[i].name,meta[i].size,meta[i].base);
+        fseek(file,i,0);
+        fread(&meta,sizeof(fileMetaData_t),1,file);
+        if(meta.used == 1){
+            printf("%-32s%-16d%-16d\n",meta.name,meta.size,meta.base);
         }  
     }
     fclose(file);
     return 0;
 }
+
 /*kopiownie z systemu plikow do linuxa*/
 int copy_from_fs(char* fs_name, char* filename, char* goalfile)
 {
+    printf("Kopiowanie pliku z systemu plikow...\n");
     superBlock_t super;
     int i;
-    FILE* file = fopen(fs_name,"r+");
+    FILE* file = fopen(fs_name,"r");
     FILE* copy_file = fopen(goalfile,"w");
     fread(&super,sizeof(superBlock_t),1,file);
-    fileMetaData_t meta[super.fileDataStart];
-    fread(&meta,super.fileDataStart,1,file);
+    fileMetaData_t meta;
     for(i = super.metadataStart;i < super.fileDataStart;i += sizeof(fileMetaData_t))
     {
-        if((meta[i].used == 1) && (strcmp(meta[i].name,filename == 0))){
-            memcpy();
+        fseek(file,i,0);
+        fread(&meta,sizeof(fileMetaData_t),1,file);
+        if((meta.used == 1) && (strcmp(meta.name,filename)== 0)){
+            fseek(file,meta.base,0);
+            char data[meta.size];
+            fread(&data,meta.size,1,file);
+            fwrite(data,meta.size,1,copy_file);
         }
     }
     fclose(file);
     fclose(copy_file);
+    printf("Plik %s zostal skopiowany prawidlowo.\n",meta.name);
     return 0;
 }
 
@@ -79,41 +87,44 @@ int copy_to_fs(char* fs_name, char* linux_file, char* filename)
     int i;
     FILE* file = fopen(fs_name,"r+");
     FILE* copy_file = fopen(linux_file,"r");
+    fseek(copy_file,0,SEEK_END);
     long filesize = ftell(copy_file);
     fread(&super,sizeof(superBlock_t),1,file);
-    fileMetaData_t meta[super.fileDataStart];
-    fread(&meta,super.fileDataStart,1,file);
-    /*if(super.metadataSize == 0)/*jesli system plikow pusty
+    fileMetaData_t meta;
+    fseek(file,super.metadataStart,0);
+    if(super.metadataNumber == super.metadataSize)
     {
-        fseek(file,super.metadataStart,0);
-        meta[super.metadataStart].used = 1;
-        strcpy(meta[super.metadataStart].name,filename);
-        meta[super.metadataStart].size = filesize;
-        meta[super.metadataStart].base = super.fileDataStart;
-        ++super.metadataSize;
-        fseek(file,0,0);
-        fwrite(&super,sizeof(super),1,file);
-        fseek(file, super.metadataStart, 0);
-        fwrite(&meta[super.metadataStart],sizeof(fileMetaData_t),1,file);
+        printf("Nie mozna dodac pliku. Za duzo plikow w systemie.\n");
+        return 0;
     }
-    else{ /*gdy w systemie sa jakies pliki*/
+    printf("Kopiowanie pliku do systemu...\n");
     for(i = super.metadataStart;i < super.fileDataStart;i += sizeof(fileMetaData_t))
     {
-        if((meta[i].used == 0)){
-            if((meta[i].size >= filesize) || (meta[i].size == 0)){
-                fseek(file,i,0);
-                meta[i].used = 1;
-                strcpy(meta[i].name,filename);
-                meta[i].size = filesize;
-                /*gdy plik wchodzi na pierwsza metadane*/
-                if(i == super.metadataStart)meta[i].base = super.fileDataStart;
-                else if(meta[i].size == 0)meta[i].base = meta[i-sizeof(fileMetaData_t)].base + meta[i-sizeof(fileMetaData_t)].size+1;
-                ++super.metadataSize;
-                fseek(file,0,0);
-                fwrite(&super,sizeof(super),1,file);
-                fseek(file, i, 0);
-                fwrite(&meta[i],sizeof(fileMetaData_t),1,file);
+        fread(&meta,sizeof(fileMetaData_t),1,file);
+        if((meta.used == 0)){
+            fseek(file,i,0);
+            strcpy(meta.name,filename);
+            meta.size = filesize;
+            /*gdy plik wchodzi na pierwsza metadane*/
+            meta.base = find_hole(filesize, file);
+            if(meta.base == 0)
+            {
+                printf("Brak miejsca na dysku na ten plik.\n");
+                return -1;
             }
+            meta.used = 1;
+            ++super.metadataSize;
+            fseek(file,0,0);
+            fwrite(&super,sizeof(super),1,file);
+            fseek(file, i, 0);
+            fwrite(&meta,sizeof(fileMetaData_t),1,file);
+            fseek(file,meta.base,0);
+            char data[meta.size];
+            fseek(copy_file, 0, 0);
+            fread(&data,meta.size,1,copy_file);
+            fseek(copy_file, meta.base, 0);
+            fwrite(data,meta.size,1,file);
+            printf("Plik %s zostal poprawnie skopiowany do systemu.\n",filename);
         }else
         {
             continue;
@@ -132,21 +143,81 @@ int rm_file_fs(char* fs_name, char* filename)
     int i;
     FILE* file = fopen(fs_name,"r+");
     fread(&super,sizeof(superBlock_t),1,file);
-    fileMetaData_t meta[super.fileDataStart];
-    fread(&meta,super.fileDataStart,1,file);
+    fileMetaData_t meta;
     for(i = super.metadataStart;i < super.fileDataStart;i += sizeof(fileMetaData_t))
     {
-        if(strcmp(meta[i].name,filename) == 0){
-            meta[i].used = 0;
+        fseek(file,i,0);
+        fread(&meta,sizeof(fileMetaData_t),1,file);
+        if(strcmp(meta.name,filename) == 0){
+            printf("Usuwanie pliku z systemu...\n");
+            meta.used = 0;
             --super.metadataSize;
             fseek(file,0,0);
             fwrite(&super,sizeof(super),1,file);
             fseek(file, i, 0);
-            fwrite(&meta[i],sizeof(fileMetaData_t),1,file);
+            fwrite(&meta,sizeof(fileMetaData_t),1,file);
             printf("Plik %s zostal poprawnie usuniety.\n",filename);
+            fclose(file);
+            return 0;
         }  
     }
+    printf("W systemie nie ma pliku o takiej nazwie.\n");
     fclose(file);
+    return 0;
+}
+
+/*funkcja znajdujaca miejsce w pamieci dla danego pliku*/
+int find_hole(int size, FILE* file)
+{
+    fileMetaData_t meta;
+    superBlock_t super;
+    fseek(file, 0, 0);
+    fread(&super,sizeof(superBlock_t),1,file);
+    dataInfo_t dataMap[super.metadataNumber];
+    int i,j; 
+    i = 0;     
+    if(super.metadataSize == 0)
+        return super.fileDataStart;
+    // stworzenie mapy zajetosci sekcji danych
+    fseek(file, super.metadataStart, 0);
+    for(j = 0; j < super.metadataNumber; j++)
+    {
+        fread(&meta, sizeof(fileMetaData_t), 1, file);
+        if( meta.used == 1)
+        {
+            dataMap[i].base = meta.base;
+            dataMap[i].size = meta.size;
+            strcpy(dataMap[i].name,meta.name);
+            dataMap[i].metaAdr = super.metadataStart;
+            dataMap[i].metaAdr+= j*sizeof(fileMetaData_t); 
+            i++;
+        }     
+    }
+
+    // sortowanie zajetych obszarow
+    for(i = 0; i < (super.metadataSize-1); i++)
+        for(j = 0; j < (super.metadataSize-1); j++)
+            if( dataMap[j].base > dataMap[j+1].base )
+            {
+                dataInfo_t tmp;
+                tmp = dataMap[j];
+                dataMap[j] = dataMap[j+1];
+                dataMap[j+1] = tmp;
+            }
+
+    // przydzielenie miejsca przed pierwszym plikiem
+    if((dataMap[0].base-super.fileDataStart)>=size)
+        return super.fileDataStart;
+
+    // przydzielenie miejsca pomiędzy plikami
+    for(j=1; j<(super.metadataSize); j++)
+        if( dataMap[j].base - dataMap[j-1].base - dataMap[j-1].size >= size )
+            return dataMap[j-1].base + dataMap[j-1].size;
+    
+    // przydzielenie miejsca po ostatnim pliku
+    if( super.size_fs - dataMap[super.metadataSize-1].base-dataMap[super.metadataSize-1].size>=size )
+        return dataMap[super.metadataSize-1].base + dataMap[super.metadataSize-1].size;
+
     return 0;
 }
 
@@ -163,6 +234,81 @@ int info_fs(char* fs_name)
     printf("Index poczatku danych zawartych w plikach: %d\n",super.fileDataStart);
     printf("Ilosc pamieci dla danych w systemie plikow: %d\n",super.fileDataSize);
     printf("Ilosc plikow w systemie: %d.\n",super.metadataSize);
+    fclose(file);
+    return 0;
+}
+
+/*usuniecie systemu plikow*/
+int rm_fs(char* fs_name)
+{
+    printf("Trwa usuwanie systemu...\n");
+    if (remove(fs_name) != 0)
+        printf("Brak systemu plikow o takiej nazwie.\n");
+    printf("System plikow usuniety prawidlowo.\n");
+    return 0;
+}
+
+/*wyswietlenie mapy zajetosci systemu*/
+int disp_map(char* fs_name)
+{
+    printf("Tworzenie mapy zajetosci...\n");
+    superBlock_t super;
+    fileMetaData_t meta;
+    int i,j; 
+    i = 0; 
+    FILE* file = fopen(fs_name,"r");
+    fread(&super,sizeof(superBlock_t),1,file);
+    if(super.metadataSize == 0)
+    {
+    printf("Mapa zajetosci:\n%d - %d wolna przestrzen\n",super.fileDataStart,super.size_fs);
+    return 0;
+    }
+    else{
+        printf("Mapa zajetosci:\n");
+    }
+    fseek(file, 0, 0);
+    fread(&super,sizeof(superBlock_t),1,file);
+    dataInfo_t dataMap[super.metadataNumber];    
+    if(super.metadataSize == 0)
+        return super.fileDataStart;
+    // stworzenie mapy zajetosci sekcji danych
+    fseek(file, super.metadataStart, 0);
+    for(j = 0; j < super.metadataNumber; j++)
+    {
+        fread(&meta, sizeof(fileMetaData_t), 1, file);
+        if( meta.used == 1)
+        {
+            dataMap[i].base = meta.base;
+            dataMap[i].size = meta.size;
+            strcpy(dataMap[i].name,meta.name);
+            dataMap[i].metaAdr = super.metadataStart;
+            dataMap[i].metaAdr+= j*sizeof(fileMetaData_t); 
+            i++;
+        }     
+    }
+    // sortowanie zajetych obszarow
+    for(i = 0; i < (super.metadataSize-1); i++)
+        for(j = 0; j < (super.metadataSize-1); j++)
+            if( dataMap[j].base > dataMap[j+1].base )
+            {
+                dataInfo_t tmp;
+                tmp = dataMap[j];
+                dataMap[j] = dataMap[j+1];
+                dataMap[j+1] = tmp;
+            }
+    for(i = 0;i < super.metadataSize;i++)
+    {
+        if(dataMap[0].base != super.fileDataStart)
+        {
+            printf("%d - %d\twolna przestrzen\n", super.fileDataStart,dataMap[0].base);
+        }
+        j = dataMap[i].base + dataMap[i].size;
+        printf("%d - %d\tplik %s\n",dataMap[i].base,j,dataMap[i].name);
+        if((i != super.metadataSize-1)&&(j != dataMap[i+1].base))
+            printf("%d - %d\twolna przestrzen\n", j,dataMap[i+1].base);
+        if((i == super.metadataSize-1)&&(j != super.size_fs))
+            printf("%d - %d\twolna przestrzen\n", j,super.size_fs);
+    }
     fclose(file);
     return 0;
 }
@@ -214,15 +360,22 @@ int fun_help(const char* fun)
 
     /*gcp_to*/
     if(strcmp(fun,"gcp_to") == 0){
-        printf("Skladnia: gcp_to <nazwa_systemu_plikow> <sciezka_i_nazwa_pliku_w linuxie> <nazwa_pliku_w systemie_plikow> <sciezka_i_nazwa_pliku_w linuxie> ...\n");
+        printf("Skladnia: gcp_to <nazwa_systemu_plikow> <sciezki_i_nazwy_plikow_w linuxie> <nazwy_plikow_w systemie_plikow> \n");
         printf("Opis:\nFunkcja do kopiowania kilku plikow naraz o danych nazwach i sciezkach z systemu Linux \ndo plikow o podanych nazwach w systemie plikow.\n");
         return 0;
     }
 
     /*gcp_from*/
     if(strcmp(fun,"gcp_from") == 0){
-        printf("Skladnia: gcp_from <nazwa_systemu_plikow> <nazwa_pliku_w systemie_plikow> <sciezka_i_nazwa_pliku_w linuxie> <nazwa_pliku_w systemie_plikow> ...\n");
+        printf("Skladnia: gcp_from <nazwa_systemu_plikow> <nazwy_plikow_w systemie_plikow> <sciezki_i_nazwy_plikow_w linuxie>\n");
         printf("Opis:\nFunkcja do kopiowania kilku plikow o danych nazwach z systemu plikow \ndo plikow o podanych nazwach z podana sciezka systemu Linux.\n");
+        return 0;
+    }
+
+    /*rm_fs*/
+    if(strcmp(fun,"rm_fs") == 0){
+        printf("Skladnia: rm_fs <nazwa_systemu_plikow>\n");
+        printf("Opis:\nFunkcja do usuwania systemu plikow o podanej nazwie.\n");
         return 0;
     }
 
