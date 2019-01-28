@@ -51,6 +51,12 @@ echo "STAN DYSKU PO DODANIU PLIKOW"
 ./a.out ls_fs fs
 echo "AKTUALNA MAPA ZAJETOSCI"
 ./a.out disp_map fs
+echo "SKOPIOWANIE PLIKOW DO SYSTEMU Z UZYCIEM WILDCARDOW"
+./a.out gcp_to fs wild* wild_marvel.txt wild_mgo.txt wild_zenek.txt
+echo "STAN DYSKU PO DODANIU PLIKOW"
+./a.out ls_fs fs
+echo "AKTUALNA MAPA ZAJETOSCI"
+./a.out disp_map fs
 echo "INFORMACJE O SYSTEMIE"
 ./a.out info_fs fs
 echo "USUNIECIE SYSTEMU"
